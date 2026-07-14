@@ -1,0 +1,32 @@
+name: 每月同步Meta广告数据到飞书多维表格
+# 定时规则：UTC时区 每月1号凌晨2点执行（国内上午10点）
+on:
+  schedule:
+    - cron: "0 2 1 * *"
+  # 支持手动一键测试运行
+  workflow_dispatch:
+
+jobs:
+  sync_task:
+    runs-on: ubuntu-latest
+    steps:
+      # 拉取仓库代码
+      - name: 拉取代码
+        uses: actions/checkout@v4
+      # 安装Python3.11
+      - name: 安装Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # 安装请求依赖
+      - name: 安装依赖requests
+        run: pip install requests
+      # 执行同步脚本，注入加密密钥
+      - name: 执行广告同步脚本
+        env:
+          FB_WORKER_URL: ${{ secrets.FB_WORKER_URL }}
+          FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
+          FEISHU_TENANT_TOKEN: ${{ secrets.FEISHU_TENANT_TOKEN }}
+          FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
+          FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
+        run: python sync_ad_data.py
